@@ -50,13 +50,14 @@ var VPAIDHTML5mixer =
 	var Emitter = __webpack_require__(1);
 
 
-	var unit, $iframe, $vpaidContainer, interval, state = {}, $skip, contentWindow ,$time;
+	var unit, $iframe, $vpaidContainer, interval, state = {}, $skip, contentWindow ,$time, debug;
 
 	function createFrame(url) {
 		return $('<iframe/>', {src: url, style:'border: 0px !important; width: 100%; height: 100%;'});
 	};
 
 	function VPAIDHTML5mixer(url, player, vpaidContainer, options) {
+		debug = options.debug || false; 
 		var def = $.Deferred();
 		interval = null;
 		unit = new Emitter({name: 'VAPIDmixer'});
@@ -127,15 +128,16 @@ var VPAIDHTML5mixer =
 		});
 
 		$vpaidContainer.append($a);
-		$a.append($iframe);
 
 		$iframe.on('load', function() {
 			
 			contentWindow = $iframe.get(0).contentWindow;
 
-			unit.emit('AdCreativeView');
-			unit.emit('AdImpression');
-			unit.emit('AdStart');
+			setTimeout(function() {
+				unit.emit('AdCreativeView');
+				unit.emit('AdImpression');
+				unit.emit('AdStart');
+			}, 0);
 
 			if(options.debug) {
 				logw('AdCreativeView');
@@ -171,10 +173,7 @@ var VPAIDHTML5mixer =
 					removeVPAID('ended');
 				}
 
-				checkTimes(res.currentTime, res.duration, options.skipTime);
-
-				
-
+				checkTimes(res.currentTime, res.duration, options.skipTime);	
 
 			}, false);
 			
@@ -187,6 +186,8 @@ var VPAIDHTML5mixer =
 			def.reject({err: 'Error load IFrame'});
 			removeVPAID('error');
 		});	
+
+		$a.append($iframe);
 
 		return def.promise();
 	}
@@ -256,7 +257,7 @@ var VPAIDHTML5mixer =
 
 	// log one string
 	function logw(w) {
-		console.log('%c'+w, 'color:green');
+		if(debug) console.log('%c'+w, 'color:green');
 	}
 
 	module.exports = VPAIDHTML5mixer;

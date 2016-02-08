@@ -3,13 +3,14 @@
 var Emitter = require('./emit');
 
 
-var unit, $iframe, $vpaidContainer, interval, state = {}, $skip, contentWindow ,$time;
+var unit, $iframe, $vpaidContainer, interval, state = {}, $skip, contentWindow ,$time, debug;
 
 function createFrame(url) {
 	return $('<iframe/>', {src: url, style:'border: 0px !important; width: 100%; height: 100%;'});
 };
 
 function VPAIDHTML5mixer(url, player, vpaidContainer, options) {
+	debug = options.debug || false; 
 	var def = $.Deferred();
 	interval = null;
 	unit = new Emitter({name: 'VAPIDmixer'});
@@ -80,15 +81,16 @@ function VPAIDHTML5mixer(url, player, vpaidContainer, options) {
 	});
 
 	$vpaidContainer.append($a);
-	$a.append($iframe);
 
 	$iframe.on('load', function() {
 		
 		contentWindow = $iframe.get(0).contentWindow;
 
-		unit.emit('AdCreativeView');
-		unit.emit('AdImpression');
-		unit.emit('AdStart');
+		setTimeout(function() {
+			unit.emit('AdCreativeView');
+			unit.emit('AdImpression');
+			unit.emit('AdStart');
+		}, 0);
 
 		if(options.debug) {
 			logw('AdCreativeView');
@@ -124,10 +126,7 @@ function VPAIDHTML5mixer(url, player, vpaidContainer, options) {
 				removeVPAID('ended');
 			}
 
-			checkTimes(res.currentTime, res.duration, options.skipTime);
-
-			
-
+			checkTimes(res.currentTime, res.duration, options.skipTime);	
 
 		}, false);
 		
@@ -140,6 +139,8 @@ function VPAIDHTML5mixer(url, player, vpaidContainer, options) {
 		def.reject({err: 'Error load IFrame'});
 		removeVPAID('error');
 	});	
+
+	$a.append($iframe);
 
 	return def.promise();
 }
@@ -209,7 +210,7 @@ function checkTimes(currentTime, duration, skipTime) {
 
 // log one string
 function logw(w) {
-	console.log('%c'+w, 'color:green');
+	if(debug) console.log('%c'+w, 'color:green');
 }
 
 module.exports = VPAIDHTML5mixer;
